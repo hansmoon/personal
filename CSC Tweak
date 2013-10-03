@@ -1,0 +1,53 @@
+#!/system/bin/sh
+
+mount -o remount,rw rootfs /
+
+export PATH=PATH:/system/xbin:/system/bin
+
+mount -o remount,rw rootfs /
+
+if [ -f "/system/csc/feature.xml.stock" ]; then
+	echo "Already Backed Up."
+else
+	busybox cp /system/csc/feature.xml /system/csc/feature.xml.stock
+	chmod 644 /system/csc/feature.xml.stock
+	echo "Now Stock File Backed Up."
+fi
+
+busybox cp /system/csc/feature.xml /system/csc/feature.xml.origin
+chmod 644 /system/csc/feature.xml.origin
+
+#Camera Option
+
+sed -i '/ShutterSoundMenu/s/false/true/g' /system/csc/feature.xml
+sed -i '/EnableCameraDuringCall/s/false/true/g' /system/csc/feature.xml
+echo "Cmera Option - Tweaked."
+
+#SMS Sender Option
+
+sed -i '/EnableEditingSenderAddress/s/false/true/g' /system/csc/feature.xml
+echo "SMS Sender Option - Tweaked."
+
+#Browser Option
+
+if busybox [ "`busybox grep AddOptionToTerminate /system/csc/feature.xml`" ]; then
+	echo "Browser Option - Already Tweaked."
+else
+	sed -i '
+	/WEB/a\<CscFeature_Web_AddOptionToTerminate>true</CscFeature_Web_AddOptionToTerminate>
+	' /system/csc/feature.xml
+	echo "Browser Option - Tweaked."
+fi
+
+#Weather Option
+
+if busybox [ "`busybox grep EnableWeatherInfo /system/csc/feature.xml`" ]; then
+	echo "Weather Option - Already Tweaked."
+else
+	sed -i '
+	/Calendar/a\<CscFeature_Calender_EnableWeatherInfo>true</CscFeature_Calender_EnableWeatherInfo>
+	' /system/csc/feature.xml
+	echo "Weather Option - Tweaked."
+fi
+
+mount -o remount,ro rootfs /
